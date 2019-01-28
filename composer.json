@@ -1,0 +1,14 @@
+{
+  "name": "drupal/redirect_extra",
+  "type": "drupal-module",
+  "description": "Optional configuration for the Redirect module.",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/redirect_extra",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/redirect_extra",
+    "source": "http://cgit.drupalcode.org/redirect_extra"
+  },
+  "require": { }
+}
