@@ -1,0 +1,4 @@
+services:
+  redirect_extra.form:
+    class: Drupal\redirect_extra\RedirectExtraForm
+    arguments: ['@entity_type.manager', '@config.factory']
