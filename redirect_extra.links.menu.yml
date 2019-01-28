@@ -1,0 +1,7 @@
+redirect_extra.settings:
+  title: 'Redirect extra settings'
+  parent: redirect.list
+  route_name: redirect_extra.settings
+  description: 'Configure Redirect Extra'
+  menu_name: admin
+  weight: 10

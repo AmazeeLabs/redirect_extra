@@ -1,0 +1,14 @@
+# @todo review default settings when the config form is stable.
+
+404_enable: 0
+404_behavior: warning
+404_path:
+  - internal
+404_scope:
+  - form
+chain_enable: 0
+chain_behavior:
+  - warning
+chain_scope:
+  - form
+status_permissions_enable: 0

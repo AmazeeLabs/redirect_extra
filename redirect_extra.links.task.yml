@@ -1,0 +1,5 @@
+redirect_extra.settings:
+  route_name: redirect_extra.settings
+  base_route: redirect.list
+  title: Redirect Extra settings
+  weight: 60

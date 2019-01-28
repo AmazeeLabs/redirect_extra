@@ -1,0 +1,16 @@
+# Schema for the configuration files of the Redirect Extra module.
+# @todo review schema entries when the config form is stable.
+
+redirect.settings:
+  type: config_entity
+  label: 'Redirect Extra settings'
+  mapping:
+    404_enable:
+      type: boolean
+      label: 'Enable 404 validation.'
+    chain_enable:
+      type: boolean
+      label: 'Enable redirect chains configuration.'
+    status_permissions_enable:
+      type: boolean
+      label: 'Enable permissions for redirect status.'

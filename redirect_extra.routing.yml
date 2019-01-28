@@ -1,0 +1,9 @@
+redirect_extra.settings:
+  path: '/admin/config/search/redirect_extra/settings'
+  defaults:
+    _form: '\Drupal\redirect_extra\Form\SettingsForm'
+    _title: 'Redirect Extra settings'
+  requirements:
+    _permission: 'administer redirect settings'
+  options:
+    _admin_route: TRUE

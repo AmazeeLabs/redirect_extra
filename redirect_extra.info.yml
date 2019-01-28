@@ -2,5 +2,7 @@ name: 'Redirect Extra'
 type: module
 description: 'Optional configuration for the Redirect module.'
 core: 8.x
+configure: redirect_extra.settings
+
 dependencies:
   - redirect:redirect
