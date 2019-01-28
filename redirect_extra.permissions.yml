@@ -1,0 +1,2 @@
+permission_callbacks:
+  - \Drupal\redirect_extra\RedirectExtraPermissions::statusPermissions
