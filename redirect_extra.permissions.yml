@@ -1,2 +1,5 @@
+use default status code:
+  title: 'Use the default redirect status code'
+
 permission_callbacks:
   - \Drupal\redirect_extra\RedirectExtraPermissions::statusPermissions

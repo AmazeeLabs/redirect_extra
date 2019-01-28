@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
@@ -20,5 +21,49 @@ function redirect_extra_help($route_name, RouteMatchInterface $route_match) {
       return $output;
 
     default:
+  }
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function redirect_extra_form_redirect_redirect_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $config = \Drupal::configFactory()->get('redirect_extra.settings');
+
+  // Limit the available redirect status if the permissions are enabled.
+  if ((int) $config->get('status_permissions_enable') === 1) {
+    $user = \Drupal::currentUser();
+    // Equivalent to redirect_status_code_options().
+    $status_codes = array_keys($form['status_code']['#options']);
+    // Equivalent to configuration.
+    $default_status_code = $form['status_code']['#default_value'];
+
+    foreach ($status_codes as $code) {
+      // Unset the default status code if the user does not have the
+      // permission to use the default one.
+      if (
+        $code === $default_status_code &&
+        !$user->hasPermission('create '. $code .' redirect') &&
+        !$user->hasPermission('use default status code')
+      ) {
+        unset($form['status_code']['#options'][$code]);
+      }
+      // Unset all other status codes based on the dynamic permissions.
+      elseif (
+        $code !== $default_status_code &&
+        !$user->hasPermission('create '. $code .' redirect')
+      ) {
+        unset($form['status_code']['#options'][$code]);
+      }
+    }
+
+    // This case probably comes from a configuration error,
+    // because it does not make sense to set the permission
+    // 'administer redirects' without any redirect code.
+    if (empty($form['status_code']['#options'])) {
+      \Drupal::messenger()->addError(t('You do not have access to any redirect status.'));
+      //$form_state->setErrorByName('status_code', t('You do not have access to any redirect status code.'));
+    }
   }
 }

@@ -51,7 +51,7 @@ class RedirectExtraPermissions implements ContainerInjectionInterface {
     // Create a permission for each redirect status.
     $status_codes = redirect_status_code_options();
     foreach ($status_codes as $code => $markup) {
-      $permissions["create $code redirect"] = [
+      $permissions['create '. $code .' redirect'] = [
         'title' => $this->t('Create @status_code redirect', [
           '@status_code' => $code,
         ]),

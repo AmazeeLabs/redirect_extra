@@ -117,7 +117,7 @@ class SettingsForm extends ConfigFormBase {
     $form['status_permissions_enable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Status permissions'),
-      '#description' => $this->t('Enable permissions for redirect status.'),
+      '#description' => $this->t('Enable permissions for redirect status. Limits the available status codes while creating a redirect.'),
       '#default_value' => $config->get('status_permissions_enable'),
     ];
     return parent::buildForm($form, $form_state);
