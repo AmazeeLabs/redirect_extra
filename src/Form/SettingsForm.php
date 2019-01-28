@@ -105,7 +105,7 @@ class SettingsForm extends ConfigFormBase {
     $form['chain']['chain_scope'] = [
       '#type' => 'checkboxes',
       '#title' => $this->t('Chain scope'),
-      '#description' => $this->t('Apply validation for the form and/or the API'),
+      '#description' => $this->t('Apply validation for the form and/or the API.'),
       '#options' => ['form' => $this->t('Form'), 'api' => $this->t('API')],
       '#default_value' => $config->get('chain_scope'),
       '#states' => [

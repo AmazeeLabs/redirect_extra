@@ -2,24 +2,19 @@
 
 namespace Drupal\redirect_extra;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Class RedirectExtra.
  */
 class RedirectExtraForm {
 
+  use StringTranslationTrait;
+
   const OPERATION_CREATE = 'create';
   const OPERATION_EDIT = 'edit';
-
-  /**
-   * Drupal\Core\Entity\EntityTypeManagerInterface definition.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
 
   /**
    * Drupal\Core\Config\ConfigFactoryInterface definition.
@@ -29,11 +24,18 @@ class RedirectExtraForm {
   protected $configFactory;
 
   /**
+   * Drupal\redirect_extra\RedirectExtraChecker definition.
+   *
+   * @var \Drupal\redirect_extra\RedirectExtraChecker
+   */
+  protected $checker;
+
+  /**
    * Constructs a new RedirectExtra object.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, ConfigFactoryInterface $config_factory) {
-    $this->entityTypeManager = $entity_type_manager;
+  public function __construct(ConfigFactoryInterface $config_factory, RedirectExtraChecker $checker) {
     $this->configFactory = $config_factory;
+    $this->checker = $checker;
   }
 
 
@@ -80,8 +82,70 @@ class RedirectExtraForm {
       // because it does not make sense to set the permission
       // 'administer redirects' without any redirect code.
       if (empty($form['status_code']['#options'])) {
-        \Drupal::messenger()->addError(t('You do not have access to any redirect status.'));
+        \Drupal::messenger()->addError($this->t('You do not have access to any redirect status.'));
       }
+    }
+
+    // @todo replace by constraints.
+    $form['#validate'][] = '\Drupal\redirect_extra\RedirectExtraForm::formValidate';
+  }
+
+  /**
+   * Custom validation callback for the Redirect create or edit form.
+   *
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   */
+  public static function formValidate(array &$form, FormStateInterface $form_state) {
+    $redirectExtraSettings = \Drupal::configFactory()->get('redirect_extra.settings');
+
+    // Check if validation is required for forms.
+    $validate404 = $redirectExtraSettings->get('404_enable') === 1 &&
+      $redirectExtraSettings->get('404_scope')['form'] === 'form';
+    $validateChain = $redirectExtraSettings->get('chain_enable') === 1  &&
+      $redirectExtraSettings->get('chain_scope')['form'] === 'form';
+
+    if (!$validate404 && !$validateChain) {
+      return;
+    }
+
+    /** @var \Drupal\redirect_extra\RedirectExtraChecker $checker */
+    $checker = \Drupal::service('redirect_extra.checker');
+    $messenger = \Drupal::messenger();
+    $source = $form_state->getValue('redirect_source')[0]['path'];
+    $redirect = $form_state->getValue('redirect_redirect')[0]['uri'];
+
+    // Check 404.
+    if ($validate404 && !$checker->isValidPath($redirect)) {
+      $message = t('The redirect path @redirect is not valid.', [
+        '@redirect' => $redirect,
+      ]);
+      if ($redirectExtraSettings->get('404_behavior') === 'warning') {
+        $messenger->addWarning($message);
+      }
+      else {
+        $form_state->setErrorByName('redirect_redirect', $message);
+      }
+    }
+
+    // Check chain.
+    if ($validateChain && $checker->isChain($source, $redirect)) {
+      if ($redirectExtraSettings->get('chain_behavior')['warning'] === 'warning') {
+        $message = t('The redirect @redirect is a chain.', [
+          '@redirect' => $redirect,
+        ]);
+        $messenger->addWarning($message);
+      }
+      if (
+        $redirectExtraSettings->get('chain_behavior')['convert'] === 'convert' &&
+        $checker->unchain($source, $redirect)
+      ) {
+        $message = t('The redirect @redirect has been converted.', [
+          '@redirect' => $redirect,
+        ]);
+        $messenger->addStatus($message);
+      }
+
     }
   }
 
