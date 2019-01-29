@@ -116,8 +116,8 @@ class RedirectExtraForm {
     $redirect = $form_state->getValue('redirect_redirect')[0]['uri'];
 
     // Check 404.
-    if ($validate404 && !$checker->isValidPath($redirect)) {
-      $message = t('The redirect path @redirect is not valid.', [
+    if ($validate404 && !$checker->isAccessible($redirect)) {
+      $message = t('The redirect path @redirect is not accessible.', [
         '@redirect' => $redirect,
       ]);
       if ($redirectExtraSettings->get('404_behavior') === 'warning') {

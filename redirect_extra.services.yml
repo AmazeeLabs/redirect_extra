@@ -4,4 +4,4 @@ services:
     arguments: ['@config.factory', '@redirect_extra.checker']
   redirect_extra.checker:
     class: Drupal\redirect_extra\RedirectExtraChecker
-    arguments: ['@config.factory', '@entity_type.manager']
+    arguments: ['@config.factory', '@entity_type.manager', '@path.validator']
