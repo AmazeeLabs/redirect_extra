@@ -5,6 +5,7 @@ namespace Drupal\redirect_extra;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 
 /**
  * Class RedirectExtra.
@@ -120,30 +121,41 @@ class RedirectExtraForm {
       $message = t('The redirect path @redirect is not accessible.', [
         '@redirect' => $redirect,
       ]);
+      // Warning
       if ($redirectExtraSettings->get('404_behavior') === 'warning') {
         $messenger->addWarning($message);
       }
-      else {
+      // Error
+      elseif($redirectExtraSettings->get('404_behavior') === 'error') {
         $form_state->setErrorByName('redirect_redirect', $message);
       }
     }
 
     // Check chain.
-    if ($validateChain && $checker->isChain($source, $redirect)) {
+    if ($validateChain && $checker->isChain($redirect)) {
+      // Warn.
       if ($redirectExtraSettings->get('chain_behavior')['warning'] === 'warning') {
         $message = t('The redirect @redirect is a chain.', [
           '@redirect' => $redirect,
         ]);
         $messenger->addWarning($message);
       }
+      // Convert
       if (
-        $redirectExtraSettings->get('chain_behavior')['convert'] === 'convert' &&
-        $checker->unchain($source, $redirect)
+        $redirectExtraSettings->get('chain_behavior')['convert'] === 'convert'
       ) {
-        $message = t('The redirect @redirect has been converted.', [
-          '@redirect' => $redirect,
-        ]);
-        $messenger->addStatus($message);
+        $originalRedirect = $checker->getOriginalRedirectUri($redirect);
+        if ($originalRedirect !== $redirect) {
+          $redirect_redirect = $form_state->getValue('redirect_redirect');
+          $redirect_redirect[0]['uri'] = $originalRedirect;
+          $form_state->setValue('redirect_redirect', $redirect_redirect);
+          $message = t('The redirect chain from @source to @redirect has been converted to @original_redirect.', [
+            '@source' => '/' . $source,
+            '@redirect' => Url::fromUri($redirect)->toString(),
+            '@original_redirect' => Url::fromUri($originalRedirect)->toString(),
+          ]);
+          $messenger->addStatus($message);
+        }
       }
 
     }

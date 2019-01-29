@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Path\PathValidatorInterface;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\redirect\RedirectRepository;
 use GuzzleHttp\Exception\RequestException;
 
 /**
@@ -36,12 +37,25 @@ class RedirectExtraChecker {
   protected $pathValidator;
 
   /**
+   * Drupal\redirect\RedirectRepository definition.
+   *
+   * @var \Drupal\redirect\RedirectRepository
+   */
+  protected $redirectRepository;
+
+  /**
    * Constructs a new RedirectExtraChecker object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, PathValidatorInterface $path_validator) {
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    EntityTypeManagerInterface $entity_type_manager,
+    PathValidatorInterface $path_validator,
+    RedirectRepository $redirect_repository
+  ) {
     $this->configFactory = $config_factory;
     $this->entityTypeManager = $entity_type_manager;
     $this->pathValidator = $path_validator;
+    $this->redirectRepository = $redirect_repository;
   }
 
   /**
@@ -86,6 +100,7 @@ class RedirectExtraChecker {
       // Interestingly, a redirect is not a valid internal path for
       // the pathValidator, so using UrlHelper.
       // @todo check if it generates a valid status code.
+      // @todo review RedirectChecker::canRedirect
       $url = Url::fromUri($redirect)->setAbsolute()->toString();
       // The front page should be included as valid.
       // $result = $url === '/' || $this->pathValidator->isValid($url);
@@ -121,32 +136,72 @@ class RedirectExtraChecker {
   /**
    * Checks if a redirect is a chain.
    *
-   * @param string $source
    * @param string $redirect
+   *   Example internal:/test_redirect/1
    *
    * @return bool
    */
-  public function isChain($source, $redirect) {
-    // @todo implement
-    $result = FALSE;
+  public function isChain($redirect) {
+    return !empty($this->getOriginalRedirect($redirect));
+  }
+
+  /**
+   * Returns a potential array of Redirect entity.
+   *
+   * Helper to detect and unchain redirect chains.
+   *
+   * @param string $redirect
+   *
+   * @return array|\Drupal\redirect\Entity\Redirect[]
+   */
+  private function getOriginalRedirect($redirect) {
+    $result = [];
+    // Check if the redirect is internal, external redirects or other uri forms
+    // like entity:node/1 cannot lead to redirect chains.
+    if (strpos($redirect, 'internal:/') === 0) {
+      // If the redirect uri already exists in the source, it is a redirect.
+      $sourceCandidate = str_replace('internal:/', '', $redirect);
+      $result = $this->redirectRepository->findBySourcePath($sourceCandidate);
+    }
     return $result;
   }
 
   /**
-   * Converts a redirect chain.
+   * Gets the original redirect uri.
    *
    * If the $redirect path is another $redirect, find the original
    * one and use it to avoid redirect chains.
    *
-   * @param $source
-   * @param $redirect
+   * Example:
+   * Existing source: /redirect/1 -> Existing redirect: /node/1
+   * $source: /redirect/2 -> $redirect: /redirect/1
+   * Replace $redirect by /node/1
    *
-   * @return bool
+   * @param string $redirect
+   *
+   * @return string
    */
-  public function unchain($source, $redirect) {
-    // @todo implement
-    // @see RedirectRepository::findMatchingRedirect
-    $result = FALSE; // unchain result
+  public function getOriginalRedirectUri($redirect) {
+    $result = $redirect;
+    // Get the Redirect entity that matches the same source and get
+    // its own redirect uri.
+    // Then set it as a replacement of the desired redirect.
+    $originalRedirect = $this->getOriginalRedirect($redirect);
+    if (!empty($originalRedirect)) {
+      /** @var \Drupal\redirect\Entity\Redirect $redirectEntity */
+      $redirectEntity = reset($originalRedirect);
+      if (!empty($redirectEntity->get('redirect_redirect')->getValue())) {
+        $result = $redirectEntity->get('redirect_redirect')->getValue()[0]['uri'];
+      }
+    }
+    // Note that several chains can happen if the 'prevent redirect chains'
+    // feature is enabled on existing chains.
+    // So a recursive unchain method could be implemented.
+    // Example:
+    // /redirect/1 --> /node/1
+    // /redirect/2 --> /redirect/1
+    // /redirect/3 --> /redirect/2
+    // In this case we need several passes to unchain all the redirects.
     return $result;
   }
 
