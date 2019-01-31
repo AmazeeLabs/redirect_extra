@@ -71,6 +71,8 @@ class RedirectExtraChecker {
   public function isAccessible($redirect) {
     $result = TRUE;
 
+    // @todo check if the settings are defined or pass default params
+    //   to allow usage of this service without the configuration.
     $redirectExtraSettings = $this->configFactory->get('redirect_extra.settings');
     $checkInternal = $redirectExtraSettings->get('404_path')['internal'] === 'internal';
     $checkExternal = $redirectExtraSettings->get('404_path')['external'] === 'external';
@@ -97,14 +99,8 @@ class RedirectExtraChecker {
     // Internal path check if enabled.
     // Possible values for $redirect: internal:/test, entity:node/1, ...
     elseif ($checkInternal) {
-      // Interestingly, a redirect is not a valid internal path for
-      // the pathValidator, so using UrlHelper.
-      // @todo check if it generates a valid status code.
-      // @todo review RedirectChecker::canRedirect
-      $url = Url::fromUri($redirect)->setAbsolute()->toString();
-      // The front page should be included as valid.
-      // $result = $url === '/' || $this->pathValidator->isValid($url);
-      $result = UrlHelper::isValid($url);
+      $url = Url::fromUri($redirect)->toString();
+      $result = $this->pathValidator->getUrlIfValidWithoutAccessCheck($url);
     }
 
     return $result;
