@@ -126,6 +126,20 @@ class RedirectExtraForm {
     $messenger = \Drupal::messenger();
     $sourcePath = $form_state->getValue('redirect_source')[0]['path'];
 
+    // Test if the source and redirect url are not the same.
+    // This test is not really needed as it will end up by a resolution
+    // of the chain if it is configured, but it will produce a sequence of
+    // messages that can be confusing, so stop early.
+    $redirectUrl = Url::fromUri($redirectUri);
+    $sourceUrl = Url::fromUri('internal:/' . $sourcePath);
+    // It is relevant to do this comparison only in case the source path has
+    // a valid route. Otherwise the validation will fail on the redirect path
+    // being an invalid route.
+    if ($redirectUrl->toString() === $sourceUrl->toString()) {
+      // Delegate then to the Redirect validation.
+      return;
+    }
+
     // Check 404
     if ($validate404 && !$checker->isAccessible($redirectUri)) {
       $message = t('The redirect path @redirect is not accessible.', [
