@@ -67,18 +67,18 @@ class SettingsForm extends ConfigFormBase {
         ],
       ],
     ];
-    $form['404']['404_scope'] = [
-      '#type' => 'checkboxes',
-      '#title' => $this->t('404 scope'),
-      '#description' => $this->t('Apply validation for the form and/or the API.'),
-      '#options' => ['form' => $this->t('Form'), 'api' => $this->t('API')],
-      '#default_value' => $config->get('404_scope'),
-      '#states' => [
-        'visible' => [
-          ':input[name="404_enable"]' => ['checked' => TRUE],
-        ],
-      ],
-    ];
+//    $form['404']['404_scope'] = [
+//      '#type' => 'checkboxes',
+//      '#title' => $this->t('404 scope'),
+//      '#description' => $this->t('Apply validation for the form and/or the API.'),
+//      '#options' => ['form' => $this->t('Form'), 'api' => $this->t('API')],
+//      '#default_value' => $config->get('404_scope'),
+//      '#states' => [
+//        'visible' => [
+//          ':input[name="404_enable"]' => ['checked' => TRUE],
+//        ],
+//      ],
+//    ];
     $form['chain'] = [
       '#type' => 'details',
       '#title' => t('Chain validation'),
@@ -102,18 +102,18 @@ class SettingsForm extends ConfigFormBase {
         ],
       ],
     ];
-    $form['chain']['chain_scope'] = [
-      '#type' => 'checkboxes',
-      '#title' => $this->t('Chain scope'),
-      '#description' => $this->t('Apply validation for the form and/or the API.'),
-      '#options' => ['form' => $this->t('Form'), 'api' => $this->t('API')],
-      '#default_value' => $config->get('chain_scope'),
-      '#states' => [
-        'visible' => [
-          ':input[name="chain_enable"]' => ['checked' => TRUE],
-        ],
-      ],
-    ];
+//    $form['chain']['chain_scope'] = [
+//      '#type' => 'checkboxes',
+//      '#title' => $this->t('Chain scope'),
+//      '#description' => $this->t('Apply validation for the form and/or the API.'),
+//      '#options' => ['form' => $this->t('Form'), 'api' => $this->t('API')],
+//      '#default_value' => $config->get('chain_scope'),
+//      '#states' => [
+//        'visible' => [
+//          ':input[name="chain_enable"]' => ['checked' => TRUE],
+//        ],
+//      ],
+//    ];
     $form['status_permissions_enable'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Status permissions'),
@@ -140,10 +140,10 @@ class SettingsForm extends ConfigFormBase {
       ->set('404_enable', $form_state->getValue('404_enable'))
       ->set('404_behavior', $form_state->getValue('404_behavior'))
       ->set('404_path', $form_state->getValue('404_path'))
-      ->set('404_scope', $form_state->getValue('404_scope'))
+      //->set('404_scope', $form_state->getValue('404_scope'))
       ->set('chain_enable', $form_state->getValue('chain_enable'))
       ->set('chain_behavior', $form_state->getValue('chain_behavior'))
-      ->set('chain_scope', $form_state->getValue('chain_scope'))
+      //->set('chain_scope', $form_state->getValue('chain_scope'))
       ->set('status_permissions_enable', $form_state->getValue('status_permissions_enable'))
       ->save();
   }
