@@ -98,9 +98,20 @@ class RedirectExtraForm {
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    */
   public static function formValidate(array &$form, FormStateInterface $form_state) {
-    $redirectExtraSettings = \Drupal::configFactory()->get('redirect_extra.settings');
+    // Test the redirect uri syntax first.
+    // @see LinkWidget::validateUriElement().
+    $redirectUri = $form_state->getValue('redirect_redirect')[0]['uri'];
+    if (
+      parse_url($redirectUri, PHP_URL_SCHEME) === 'internal' &&
+      !in_array(mb_substr(explode('internal:', $redirectUri)[1], 0, 1), ['/', '?', '#'], TRUE) &&
+      substr($redirectUri, 0, 7) !== '<front>'
+    ) {
+      $form_state->setErrorByName('redirect_redirect', t('Manually entered paths should start with /, ? or #.'));
+      return;
+    }
 
     // Check if validation is required for forms.
+    $redirectExtraSettings = \Drupal::configFactory()->get('redirect_extra.settings');
     $validate404 = $redirectExtraSettings->get('404_enable') === 1 &&
       $redirectExtraSettings->get('404_scope')['form'] === 'form';
     $validateChain = $redirectExtraSettings->get('chain_enable') === 1  &&
@@ -116,7 +127,7 @@ class RedirectExtraForm {
     $source = $form_state->getValue('redirect_source')[0]['path'];
     $redirect = $form_state->getValue('redirect_redirect')[0]['uri'];
 
-    // Check 404.
+    // Check 404
     if ($validate404 && !$checker->isAccessible($redirect)) {
       $message = t('The redirect path @redirect is not accessible.', [
         '@redirect' => $redirect,
@@ -131,16 +142,16 @@ class RedirectExtraForm {
       }
     }
 
-    // Check chain.
+    // Check chain
     if ($validateChain && $checker->isChain($redirect)) {
-      // Warn.
+      // Warning
       if ($redirectExtraSettings->get('chain_behavior')['warning'] === 'warning') {
         $message = t('The redirect @redirect is a chain.', [
           '@redirect' => $redirect,
         ]);
         $messenger->addWarning($message);
       }
-      // Convert
+      // Conversion
       if (
         $redirectExtraSettings->get('chain_behavior')['convert'] === 'convert'
       ) {
