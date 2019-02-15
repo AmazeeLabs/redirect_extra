@@ -124,13 +124,12 @@ class RedirectExtraForm {
     /** @var \Drupal\redirect_extra\RedirectExtraChecker $checker */
     $checker = \Drupal::service('redirect_extra.checker');
     $messenger = \Drupal::messenger();
-    $source = $form_state->getValue('redirect_source')[0]['path'];
-    $redirect = $form_state->getValue('redirect_redirect')[0]['uri'];
+    $sourcePath = $form_state->getValue('redirect_source')[0]['path'];
 
     // Check 404
-    if ($validate404 && !$checker->isAccessible($redirect)) {
+    if ($validate404 && !$checker->isAccessible($redirectUri)) {
       $message = t('The redirect path @redirect is not accessible.', [
-        '@redirect' => $redirect,
+        '@redirect' => $redirectUri,
       ]);
       // Warning
       if ($redirectExtraSettings->get('404_behavior') === 'warning') {
@@ -143,11 +142,11 @@ class RedirectExtraForm {
     }
 
     // Check chain
-    if ($validateChain && $checker->isChain($redirect)) {
+    if ($validateChain && $checker->isChain($redirectUri)) {
       // Warning
       if ($redirectExtraSettings->get('chain_behavior')['warning'] === 'warning') {
         $message = t('The redirect @redirect is a chain.', [
-          '@redirect' => $redirect,
+          '@redirect' => $redirectUri,
         ]);
         $messenger->addWarning($message);
       }
@@ -155,14 +154,14 @@ class RedirectExtraForm {
       if (
         $redirectExtraSettings->get('chain_behavior')['convert'] === 'convert'
       ) {
-        $originalRedirect = $checker->getOriginalRedirectUri($redirect);
-        if ($originalRedirect !== $redirect) {
+        $originalRedirect = $checker->getOriginalRedirectUri($redirectUri);
+        if ($originalRedirect !== $redirectUri) {
           $redirect_redirect = $form_state->getValue('redirect_redirect');
           $redirect_redirect[0]['uri'] = $originalRedirect;
           $form_state->setValue('redirect_redirect', $redirect_redirect);
           $message = t('The redirect chain from @source to @redirect has been converted to @original_redirect.', [
-            '@source' => '/' . $source,
-            '@redirect' => Url::fromUri($redirect)->toString(),
+            '@source' => '/' . $sourcePath,
+            '@redirect' => Url::fromUri($redirectUri)->toString(),
             '@original_redirect' => Url::fromUri($originalRedirect)->toString(),
           ]);
           $messenger->addStatus($message);
