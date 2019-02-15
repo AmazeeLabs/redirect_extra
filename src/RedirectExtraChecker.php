@@ -100,7 +100,15 @@ class RedirectExtraChecker {
     // Possible values for $redirect: internal:/test, entity:node/1, ...
     elseif ($checkInternal) {
       $url = Url::fromUri($redirect)->toString();
-      $result = $this->pathValidator->getUrlIfValidWithoutAccessCheck($url);
+      // Simply skip the test if this is a redirect
+      // as it is not regarded as a valid internal path
+      // and the process of unchaining is not handled here.
+      if (!empty($this->getOriginalRedirect($redirect))) {
+        $result = TRUE;
+      }
+      else {
+        $result = $this->pathValidator->getUrlIfValidWithoutAccessCheck($url);
+      }
     }
 
     return $result;
