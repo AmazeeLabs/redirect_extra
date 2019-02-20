@@ -10,5 +10,7 @@
     "issues": "https://www.drupal.org/project/issues/redirect_extra",
     "source": "http://cgit.drupalcode.org/redirect_extra"
   },
-  "require": { }
+  "require": {
+    "drupal/redirect": "~1.3"
+  }
 }
