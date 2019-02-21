@@ -11,6 +11,7 @@
     "source": "http://cgit.drupalcode.org/redirect_extra"
   },
   "require": {
+    "ext-mbstring": "*",
     "drupal/redirect": "~1.3"
   }
 }
